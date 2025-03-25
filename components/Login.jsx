@@ -33,7 +33,7 @@ export default function Login() {
                 marginTop: 20
             }}>Discover your next adventure effortlessly at your fingertips.Travel smarter with AI-driven insights</Text>
 
-            < TouchableOpacity View style = {styles.button}
+            <TouchableOpacity View style = {styles.button}
             onPress={() => router.push('../auth/sign-in')}>
                 <Text style={{
                     color: Colors.WHITE,
