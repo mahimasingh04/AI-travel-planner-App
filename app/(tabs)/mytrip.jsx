@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View, ActivityIndicator,ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors } from './../../constants/Colors';
+import { Colors } from '@/constants/Colors';
 import { useEffect, useState } from 'react';
 import StartNewTripCard from '../../components/MyTrips/StartNewTripCard';
 import { collection, getDocs, query, where } from 'firebase/firestore';

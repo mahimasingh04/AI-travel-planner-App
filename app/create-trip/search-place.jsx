@@ -1,6 +1,6 @@
 import { StyleSheet, View, Text, TextInput, FlatList, TouchableOpacity } from 'react-native';
 import { useNavigation, useRouter } from 'expo-router';
-import { useEffect, useContext, useState } from 'react';
+import { useEffect, useContext, useState, useRef } from 'react';
 import { Colors } from './../../constants/Colors';
 import { CreateTripContext } from './../../context/CreateTripContext';
 
@@ -11,6 +11,7 @@ export default function SearchPlace() {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [suggestions, setSuggestions] = useState([]);
+  const debounceTimeout = useRef(null);
 
   useEffect(() => {
     navigation.setOptions({
@@ -24,35 +25,39 @@ export default function SearchPlace() {
     console.log("tripData", tripData);
   }, [tripData]);
 
-  // Fetch location suggestions from OpenStreetMap (Nominatim API)
-  let debounceTimeout;
-
-const fetchSuggestions = async (query) => {
-  if (!query || query.trim().length < 3) {
-    setSuggestions([]);
-    return;
-  }
-
-  // Debounce API calls (clears previous timeout)
-  clearTimeout(debounceTimeout);
-  debounceTimeout = setTimeout(async () => {
-    try {
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`
-      );
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      setSuggestions(data);
-    } catch (error) {
-      console.error('Error fetching location suggestions:', error.message);
+  const fetchSuggestions = async (query) => {
+    if (!query || query.trim().length < 3) {
+      setSuggestions([]);
+      return;
     }
-  }, 500); // Waits 500ms before making the API request
-};
-
+  
+    // Debounce API calls
+    if (debounceTimeout.current) {
+      clearTimeout(debounceTimeout.current);
+    }
+  
+    debounceTimeout.current = setTimeout(async () => {
+      try {
+        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=2`;
+  
+        const response = await fetch(url, {
+          headers: {
+            "User-Agent": "ReactNativeApp/0.76.7 (swatikumari8270@gmail.com)", // Add a User-Agent
+          },
+        });
+  
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+  
+        const data = await response.json();
+        setSuggestions(data.length > 0 ? data : []);
+      } catch (error) {
+        console.error("Error fetching location suggestions:", error.message);
+      }
+    }, 500);
+  };
+  
 
   return (
     <View style={styles.container}>
@@ -73,7 +78,7 @@ const fetchSuggestions = async (query) => {
       {suggestions.length > 0 && (
         <FlatList
           data={suggestions}
-          keyExtractor={(item) => item.place_id.toString()}
+          keyExtractor={(item) => item.place_id}
           renderItem={({ item }) => (
             <TouchableOpacity
               style={styles.suggestionItem}
@@ -86,8 +91,7 @@ const fetchSuggestions = async (query) => {
                       lat: item.lat,
                       lon: item.lon,
                     },
-                    photoRef: null, // No images available in Nominatim API
-                    url: `https://www.openstreetmap.org/?mlat=${item.lat}&mlon=${item.lon}&zoom=12`
+                    url: `https://www.openstreetmap.org/?mlat=${item.lat}&mlon=${item.lon}&zoom=12`,
                   },
                 });
                 router.push('./select-traveler');

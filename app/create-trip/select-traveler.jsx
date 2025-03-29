@@ -61,7 +61,7 @@ export default SelectTraveler;
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.WHITE,
     paddingTop: 85,
     padding: 25,
     height: '100%',
@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
     fontSize: 23,
   },
   button: {
-    backgroundColor:Colors.primary,
+    backgroundColor:Colors.PRIMARY,
     padding: 15,
     borderRadius:15,
     marginTop:20,

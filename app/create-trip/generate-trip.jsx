@@ -46,7 +46,7 @@ const GenerateTrip = () => {
         docId: docId,
       });
 
-      router.push('./(tabs)/mytrip');
+      router.push('../(tabs)/mytrip');
     } catch (error) {
       console.error('Error generating trip:', error);
       setLoading(false);

@@ -1,6 +1,5 @@
-import { StyleSheet, Text, View, FlatList,Image } from 'react-native'
+import { StyleSheet, Text, View, FlatList } from 'react-native'
 import React from 'react';
-import { GetPhotoRef } from '../../services/GooglePlaceAPI';
 import HotelCard from './HotelCard';
 
 const HotelList = ({ hotelList }) => {

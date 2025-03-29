@@ -37,7 +37,7 @@ const UserTripList = ({ userTrips }) => {
             <Text style={styles.smallPara}> 🚌 {latestTrip.traveler.title}</Text>
           </View>
           <TouchableOpacity style={styles.button}
-            onPress={()=>router.push({pathname:'./trip-details',
+            onPress={()=>router.push({pathname:'../trip-details',
               params:{trip:JSON.stringify(userTrips[0])}
 
             })}
@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
   smallPara: {
     fontFamily: 'Outfit',
     fontSize: 17,
-    color:Colors.gray
+    color:Colors.GRAY
   },
   flexContainer: {
     display: 'flex',
@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
   },
   button: {
     padding: 15,
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.PRIMARY,
     borderRadius:15,
      marginTop:15
 
