@@ -12,21 +12,19 @@ const UserTripCard = ({ trip }) => {
     }
   };
 
-  const apiKey = process.env.EXPO_PUBLIC_GOOGLE_MAP_API_KEY;
+ 
   const tripData = formatData(trip?.tripData);
-  const photoRef = tripData?.locationInfo?.photoRef;
+  const lat = latestTrip?.locationInfo?.coordinate?.lat;
+  const lon = latestTrip?.locationInfo?.coordinate?.lon;
   
-  const imageUrl = photoRef && apiKey 
-    ? `https://maps.googleapis.com/maps/api/place/photo?maxheight=400&photoreference=${photoRef}&key=${apiKey}`
+  const imageUrl = lat && lon 
+    ? `https://static-maps.yandex.ru/1.x/?ll=${lon},${lat}&size=450,450&z=12&l=map`
     : null;
 
   return (
     <View style={styles.flexContainer}>
       {imageUrl ? (
-        <Image 
-          source={{ uri: imageUrl }} 
-          style={styles.image} 
-        />
+        <Image source={{ uri: imageUrl }} style={styles.image} />
       ) : (
         <Image 
           source={require('./../../assets/images/travel.jpg')} 

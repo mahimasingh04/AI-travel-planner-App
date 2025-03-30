@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, ActivityIndicator,ScrollView } from 'react-native';
+import { StyleSheet, Text, View, ActivityIndicator,ScrollView ,TouchableOpacity} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/constants/Colors';
 import { useEffect, useState } from 'react';
@@ -10,11 +10,13 @@ import UserTripList from './../../components/MyTrips/UserTripList';
 
 import 'react-native-get-random-values';
 import { v4 as uuidv4 } from 'uuid';
+import { useRouter } from 'expo-router';
 
 console.log(uuidv4()); // Test if UUID works without errors
 
 
 const MyTrip = () => {
+  const router= useRouter();
   const [userTrips, setUserTrips] = useState([]);
   const [loading, setLoading] = useState(false);
   const user = auth.currentUser;
@@ -29,22 +31,31 @@ const MyTrip = () => {
   const getMyTrip = async () => {
     setLoading(true);
     setUserTrips([]);
-    const q = query(collection(db,'UserTrip'), where('userEmail', '==', userEmail));
-    const querySnapshot = await getDocs(q);
     
-    querySnapshot.forEach((doc) => {
-      console.log(doc.id, ' => ', doc.data());
-      setUserTrips((prev) => [...prev, doc.data()]);
-      console.log('setUserTrips',userTrips)
-    });
+    try {
+      const q = query(collection(db, 'UserTrip'), where('userEmail', '==', userEmail));
+      const querySnapshot = await getDocs(q);
+      
+      const trips = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      setUserTrips(trips);
+      
+    } catch (error) {
+      console.error("Error fetching trips:", error);
+    }
+    
     setLoading(false);
   };
+  
 
   return (
     <ScrollView style={styles.mainView}>
       <View style={styles.flexRowView}>
         <Text style={styles.title}>My Trip</Text>
+        <TouchableOpacity
+              onPress={()=>router.push('../create-trip/search-place')}
+              >
         <Ionicons name="add-circle-outline" size={50} color="black" />
+        </TouchableOpacity>
       </View>
       {loading && <ActivityIndicator size={'large'} color={Colors.PRIMARY} />}
       {userTrips.length === 0 ? <StartNewTripCard /> : <UserTripList userTrips={userTrips} />}

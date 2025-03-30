@@ -15,17 +15,17 @@ const FlightInfo = ({ flightData }) => {
     <View style={styles.container}>
       <View style={styles.flexContainer}>
         <Text style={styles.title}>✈️ Flights</Text>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.button} 
-            onPress={() => Linking.openURL(flight.booking_url)}
+            onPress={() => Linking.openURL(flights.bookingUrl)}
           >
             <Text style={styles.buttonTxT}>Book Here</Text>
           </TouchableOpacity>
       </View>
-      {flightData.map((flight, index) => (
+      {flightData.map((flights, index) => (
         <View key={index} style={styles.flightContainer}>
-          <Text style={styles.para}>Airline: {flight.airline}</Text>
-          <Text style={styles.para}>Price: {flight.price}</Text>
+          <Text style={styles.para}>Airline: {flights.airline}</Text>
+          <Text style={styles.para}>Price: {flights.priceEstimate}</Text>
           
         </View>
       ))}

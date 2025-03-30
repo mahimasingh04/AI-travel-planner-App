@@ -7,33 +7,69 @@ import {useRouter } from 'expo-router';
 const UserTripList = ({ userTrips }) => {
     const router = useRouter();
     console.log('userTrips from UserTripList',userTrips)
-    const latestTrip = JSON.parse(userTrips[0].tripData)
-    const apiKey = process.env.EXPO_PUBLIC_GOOGLE_MAP_API_KEY;
-    const photoRef = latestTrip?.locationInfo?.photoRef;
 
-    const imageUrl = photoRef && apiKey 
-    ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${photoRef}&key=${apiKey}`
+
+  //   const latestTrip = JSON.parse(userTrips[0].tripData)
+  //   const apiKey = process.env.EXPO_PUBLIC_GOOGLE_MAP_API_KEY;
+  //   const photoRef = latestTrip?.locationInfo?.photoRef;
+
+  //   const imageUrl = photoRef && apiKey 
+  //   ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${photoRef}&key=${apiKey}`
+  //   : null;
+
+  // return (
+  //   <View>
+  //     <View style={{ marginTop: 20 }}>
+  //       {imageUrl?
+  //       <Image 
+  //       source={{ uri: imageUrl }} 
+  //       style={styles.image} 
+  //     />
+  //       :<Image 
+  //         source={require('./../../assets/images/travel.jpg')} 
+  //         style={styles.image} 
+  //       />
+  //     }
+  //       <View style={{marginTop:10}}>
+  //         <Text style={styles.paragraph}>
+  //           {userTrips[0]?.tripPlan?.travel_plan?.destination}
+  //         </Text>
+  //         <View style={styles.flexContainer}>
+  //           <Text style={styles.smallPara}>{moment(latestTrip.startDate).format("DD MMM YYYY")}</Text>
+  //           <Text style={styles.smallPara}> 🚌 {latestTrip.traveler.title}</Text>
+  //         </View>
+
+
+  const latestTrip = JSON.parse(userTrips[0].tripData);
+
+  // Extract latitude & longitude directly
+  const lat = latestTrip?.locationInfo?.coordinate?.lat;
+  const lon = latestTrip?.locationInfo?.coordinate?.lon;
+  
+  // OpenStreetMap Static Image (Free & No API key required)
+  const imageUrl = lat && lon 
+    ? `https://static-maps.yandex.ru/1.x/?ll=${lon},${lat}&size=450,450&z=12&l=map`
     : null;
-
+  
   return (
     <View>
       <View style={{ marginTop: 20 }}>
-        {imageUrl?
-        <Image 
-        source={{ uri: imageUrl }} 
-        style={styles.image} 
-      />
-        :<Image 
-          source={require('./../../assets/images/travel.jpg')} 
-          style={styles.image} 
-        />
-      }
-        <View style={{marginTop:10}}>
+        {imageUrl ? (
+          <Image source={{ uri: imageUrl }} style={styles.image} />
+        ) : (
+          <Image 
+            source={require('./../../assets/images/travel.jpg')} 
+            style={styles.image} 
+          />
+        )}
+        <View style={{ marginTop: 10 }}>
           <Text style={styles.paragraph}>
-            {userTrips[0]?.tripPlan?.travel_plan?.destination}
+            {latestTrip?.locationInfo?.name}
           </Text>
           <View style={styles.flexContainer}>
-            <Text style={styles.smallPara}>{moment(latestTrip.startDate).format("DD MMM YYYY")}</Text>
+            <Text style={styles.smallPara}>
+              {moment(latestTrip.startDate).format("DD MMM YYYY")}
+            </Text>
             <Text style={styles.smallPara}> 🚌 {latestTrip.traveler.title}</Text>
           </View>
           <TouchableOpacity style={styles.button}
