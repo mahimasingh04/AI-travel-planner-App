@@ -1,92 +1,71 @@
-import { View, Text, Image, StyleSheet,TouchableOpacity } from 'react-native';
-import moment from 'moment'
+import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
+import moment from 'moment';
 import { Colors } from './../../constants/Colors';
 import UserTripCard from './UserTripCard';
-import {useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
+import { useState, useEffect } from 'react';
 
 const UserTripList = ({ userTrips }) => {
-    const router = useRouter();
-    console.log('userTrips from UserTripList',userTrips)
+  const router = useRouter();
+  const [imageUrl, setImageUrl] = useState(null);
 
+  if (!userTrips || userTrips.length === 0) {
+    return <Text style={styles.noTrips}>No trips available.</Text>;
+  }
 
-  //   const latestTrip = JSON.parse(userTrips[0].tripData)
-  //   const apiKey = process.env.EXPO_PUBLIC_GOOGLE_MAP_API_KEY;
-  //   const photoRef = latestTrip?.locationInfo?.photoRef;
+  // Parse the latest trip data
+  let latestTrip;
+  try {
+    latestTrip = JSON.parse(userTrips[0].tripData);
+  } catch (error) {
+    console.error("Error parsing tripData:", error);
+    return <Text style={styles.noTrips}>Error loading trip data.</Text>;
+  }
 
-  //   const imageUrl = photoRef && apiKey 
-  //   ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${photoRef}&key=${apiKey}`
-  //   : null;
+  const placeName = latestTrip?.locationInfo?.name || "Famous Place";
 
-  // return (
-  //   <View>
-  //     <View style={{ marginTop: 20 }}>
-  //       {imageUrl?
-  //       <Image 
-  //       source={{ uri: imageUrl }} 
-  //       style={styles.image} 
-  //     />
-  //       :<Image 
-  //         source={require('./../../assets/images/travel.jpg')} 
-  //         style={styles.image} 
-  //       />
-  //     }
-  //       <View style={{marginTop:10}}>
-  //         <Text style={styles.paragraph}>
-  //           {userTrips[0]?.tripPlan?.travel_plan?.destination}
-  //         </Text>
-  //         <View style={styles.flexContainer}>
-  //           <Text style={styles.smallPara}>{moment(latestTrip.startDate).format("DD MMM YYYY")}</Text>
-  //           <Text style={styles.smallPara}> 🚌 {latestTrip.traveler.title}</Text>
-  //         </View>
+  // Fetch place image from Unsplash
+  useEffect(() => {
+    const fetchImage = async () => {
+      try {
+        const response = await fetch(
+          `https://api.unsplash.com/search/photos?query=${encodeURIComponent(placeName)}&client_id=kf7zsIHZ3HjK9ZYmDJnemoThO_URLMLer_deTCmi3cE`
+        );
+        const data = await response.json();
+        if (data.results.length > 0) {
+          setImageUrl(data.results[0].urls.small);
+        }
+      } catch (error) {
+        console.error("Error fetching place image:", error);
+      }
+    };
 
+    fetchImage();
+  }, [placeName]);
 
-  const latestTrip = JSON.parse(userTrips[0].tripData);
-
-  // Extract latitude & longitude directly
-  const lat = latestTrip?.locationInfo?.coordinate?.lat;
-  const lon = latestTrip?.locationInfo?.coordinate?.lon;
-  
-  // OpenStreetMap Static Image (Free & No API key required)
-  const imageUrl = lat && lon 
-    ? `https://static-maps.yandex.ru/1.x/?ll=${lon},${lat}&size=450,450&z=12&l=map`
-    : null;
-  
   return (
     <View>
       <View style={{ marginTop: 20 }}>
-        {imageUrl ? (
-          <Image source={{ uri: imageUrl }} style={styles.image} />
-        ) : (
-          <Image 
-            source={require('./../../assets/images/travel.jpg')} 
-            style={styles.image} 
-          />
-        )}
+        <Image 
+          source={imageUrl ? { uri: imageUrl } : require('./../../assets/images/travel.jpg')}
+          style={styles.image} 
+        />
         <View style={{ marginTop: 10 }}>
-          <Text style={styles.paragraph}>
-            {latestTrip?.locationInfo?.name}
-          </Text>
+          <Text style={styles.paragraph}>{placeName}</Text>
           <View style={styles.flexContainer}>
             <Text style={styles.smallPara}>
-              {moment(latestTrip.startDate).format("DD MMM YYYY")}
+              {latestTrip?.startDate ? moment(latestTrip.startDate).format("DD MMM YYYY") : "No Date"}
             </Text>
-            <Text style={styles.smallPara}> 🚌 {latestTrip.traveler.title}</Text>
+            <Text style={styles.smallPara}> 🚌 {latestTrip.traveler?.title || "N/A"}</Text>
           </View>
-          <TouchableOpacity style={styles.button}
-            onPress={()=>router.push({pathname:'../trip-details',
-              params:{trip:JSON.stringify(userTrips[0])}
-
-            })}
-            >
-          <Text style={{textAlign:'center',color:Colors.WHITE,fontFamily:'Outfit-Medium',fontSize:15}}>See Your Plan</Text>
-        </TouchableOpacity>
-
+          <TouchableOpacity 
+            style={styles.button}
+            onPress={() => router.push({ pathname: '../trip-details', params: { trip: JSON.stringify(userTrips[0]) } })}
+          >
+            <Text style={styles.buttonText}>See Your Plan</Text>
+          </TouchableOpacity>
         </View>
-        
-        {userTrips.map((trip, index) => (  
-          <UserTripCard trip={trip} key={index} />
-        ))}
-
+        {userTrips.map((trip, index) => <UserTripCard trip={trip} key={index} />)}
       </View>
     </View>
   );
@@ -106,20 +85,30 @@ const styles = StyleSheet.create({
   smallPara: {
     fontFamily: 'Outfit',
     fontSize: 17,
-    color:Colors.GRAY
+    color: Colors.GRAY,
   },
   flexContainer: {
-    display: 'flex',
     flexDirection: 'row',
-    justifyContent:'space-between',
-    marginTop:5
+    justifyContent: 'space-between',
+    marginTop: 5,
   },
   button: {
     padding: 15,
     backgroundColor: Colors.PRIMARY,
-    borderRadius:15,
-     marginTop:15
-
+    borderRadius: 15,
+    marginTop: 15,
+  },
+  buttonText: {
+    textAlign: 'center',
+    color: Colors.WHITE,
+    fontFamily: 'Outfit-Medium',
+    fontSize: 15,
+  },
+  noTrips: {
+    fontSize: 16,
+    textAlign: 'center',
+    color: Colors.GRAY,
+    marginTop: 20,
   },
 });
 

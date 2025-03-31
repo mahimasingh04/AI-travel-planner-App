@@ -1,45 +1,57 @@
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, Image } from 'react-native';
 import moment from 'moment';
 import { Colors } from './../../constants/Colors';
 
 const UserTripCard = ({ trip }) => {
+  const [placeImage, setPlaceImage] = useState(null);
+
   const formatData = (data) => {
     try {
       return JSON.parse(data);
     } catch (error) {
-      console.error('Error parsing data:', error);
+      console.error('Error parsing tripData:', error);
       return null;
     }
   };
 
- 
   const tripData = formatData(trip?.tripData);
-  const lat = latestTrip?.locationInfo?.coordinate?.lat;
-  const lon = latestTrip?.locationInfo?.coordinate?.lon;
-  
-  const imageUrl = lat && lon 
-    ? `https://static-maps.yandex.ru/1.x/?ll=${lon},${lat}&size=450,450&z=12&l=map`
-    : null;
+  const placeName = tripData?.locationInfo?.name || "Famous Place";
+
+  useEffect(() => {
+    const fetchImage = async () => {
+      try {
+        const response = await fetch(
+          `https://api.unsplash.com/search/photos?query=${encodeURIComponent(placeName)}&client_id=kf7zsIHZ3HjK9ZYmDJnemoThO_URLMLer_deTCmi3cE`
+        );
+        const data = await response.json();
+
+        if (data && data.results && data.results.length > 0) {
+          setPlaceImage(data.results[0].urls.small);
+        } else {
+          console.warn(`No images found for: ${placeName}`);
+        }
+      } catch (error) {
+        console.error("Error fetching place image:", error);
+      }
+    };
+
+    fetchImage();
+  }, [placeName]);
 
   return (
     <View style={styles.flexContainer}>
-      {imageUrl ? (
-        <Image source={{ uri: imageUrl }} style={styles.image} />
-      ) : (
-        <Image 
-          source={require('./../../assets/images/travel.jpg')} 
-          style={styles.image} 
-        />
-      )}
-      <View style={{marginLeft:10}}>
-        <Text style={styles.paragraph}>
-          {trip?.tripPlan?.travel_plan?.destination}
+      <Image
+        source={placeImage ? { uri: placeImage } : require('./../../assets/images/travel.jpg')}
+        style={styles.image}
+      />
+      <View style={{ marginLeft: 10 }}>
+        <Text style={styles.paragraph}>{placeName}</Text>
+        <Text style={styles.smallPara}>
+          {tripData?.startDate ? moment(tripData.startDate).format("DD MMM YYYY") : "No Date"}
         </Text>
         <Text style={styles.smallPara}>
-          {moment(tripData?.startDate).format("DD MMM YYYY")}
-        </Text>
-        <Text style={styles.smallPara}>
-          Travelling: {tripData?.traveler?.title}
+          Travelling: {tripData?.traveler?.title || "N/A"}
         </Text>
       </View>
     </View>
@@ -58,7 +70,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 20,
-  
   },
   paragraph: {
     fontFamily: 'Outfit-Medium',
