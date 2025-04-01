@@ -1,6 +1,6 @@
-import { StyleSheet, Text, View, Image,ScrollView } from 'react-native';
+import { StyleSheet, Text, View, Image, ScrollView } from 'react-native';
 import { useNavigation, useLocalSearchParams } from 'expo-router';
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Colors } from '../../constants/Colors';
 import moment from 'moment';
 import FlightInfo from '../../components/TripDetails/FlightInfo';
@@ -10,18 +10,19 @@ import PlannedTrip from '../../components/TripDetails/PlannedTrip';
 const Index = () => {
   const navigation = useNavigation();
   const { trip } = useLocalSearchParams();
-  const [tripDetails, setTripDetails] = useState(null);
-
-  const formatData = (data) => {
+  
+  // Ensure trip is parsed once using useMemo
+  const tripDetails = useMemo(() => {
+    if (!trip) return null;
     try {
-      return JSON.parse(data);
+      return JSON.parse(trip);
     } catch (error) {
-      console.error('Error parsing data:', error);
+      console.error('Error parsing trip data:', error);
       return null;
     }
-  };
+  }, [trip]);
 
-  const apiKey = process.env.EXPO_PUBLIC_GOOGLE_MAP_API_KEY;
+  const [imageUrl, setImageUrl] = useState(null);
 
   useEffect(() => {
     navigation.setOptions({
@@ -29,67 +30,76 @@ const Index = () => {
       headerTransparent: true,
       headerTitle: '',
     });
-
-    if (trip) {
-      const parsedTrip = formatData(trip);
-      setTripDetails(parsedTrip);
-    }
-  }, [trip]);
+  }, [navigation]);
 
   if (!tripDetails) return null;
 
-  const tripData = formatData(tripDetails?.tripData);
-  const photoRef = tripData?.locationInfo?.photoRef;
+  const tripData = useMemo(() => {
+    try {
+      return tripDetails?.tripData ? JSON.parse(tripDetails.tripData) : {};
+    } catch (error) {
+      console.error('Error parsing tripData:', error);
+      return {};
+    }
+  }, [tripDetails]);
 
-  const imageUrl = photoRef && apiKey 
-    ? `https://maps.googleapis.com/maps/api/place/photo?maxheight=400&photoreference=${photoRef}&key=${apiKey}`
-    : null;
+  const placeName = tripData?.locationInfo?.name || "Famous Place";
+
+  // Fetch place image from Unsplash
+  useEffect(() => {
+    const fetchImage = async () => {
+      try {
+        const response = await fetch(
+        `https://api.unsplash.com/search/photos?query=${encodeURIComponent(placeName)}&client_id=kf7zsIHZ3HjK9ZYmDJnemoThO_URLMLer_deTCmi3cE`
+        );
+        const data = await response.json();
+        if (data.results.length > 0) {
+          setImageUrl(data.results[0].urls.small);
+        }
+      } catch (error) {
+        console.error("Error fetching place image:", error);
+      }
+    };
+
+    fetchImage();
+  }, [placeName]);
 
   const flights = tripDetails?.tripPlan?.trip?.flights || [];
   const hotels = tripDetails?.tripPlan?.trip?.hotels || [];
   const tripDailyPlan = tripDetails?.tripPlan?.trip?.itinerary || [];
 
-
   return (
     <ScrollView>
-      {imageUrl ? (
-        <Image 
-          source={{ uri: imageUrl }} 
-          style={styles.image} 
-        />
-      ) : (
-        <Image 
-          source={require('./../../assets/images/travel.jpg')} 
-          style={styles.image} 
-        />
-      )}
+      <Image 
+        source={imageUrl ? { uri: imageUrl } : require('./../../assets/images/travel.jpg')}
+        style={styles.image} 
+      />
       <View style={styles.container}>
         <Text style={styles.title}>
-          {tripDetails.tripPlan?.travel_plan?.destination}
+          {tripData?.locationInfo?.name || "Unknown Destination"}
         </Text>
         <View style={styles.flexBox}>
           <Text style={styles.smallPara}>
-            {moment(tripData?.startDate).format("DD MMM YYYY")}
+            {tripData?.startDate ? moment(tripData.startDate).format("DD MMM YYYY") : "Start Date"}
           </Text>
           <Text style={styles.smallPara}>
-            - {moment(tripData?.endDate).format("DD MMM YYYY")}
+            - {tripData?.endDate ? moment(tripData.endDate).format("DD MMM YYYY") : "End Date"}
           </Text>
         </View>
         <Text style={styles.smallPara}>
-          🚌 {tripData?.traveler?.title}
+          🚌 {tripData?.traveler?.title || "Traveler Info"}
         </Text>
 
         {/* Flight Info */}
-        <FlightInfo flightData={flights} />
-        {/* Hotel List  */}
-        <HotelList hotelList={hotels}/>
+        <FlightInfo flightData={tripDetails?.tripPlan?.flights} />
+        {/* Hotel List */}
+        <HotelList hotelList={tripDetails?.tripPlan?.hotels} />
         {/* Trip Daily Plan */}
-    
-  <PlannedTrip details={tripDailyPlan}/>
+        <PlannedTrip details={tripDetails?.tripPlan?.itinerary} />
       </View>
     </ScrollView>
   );
-}
+};
 
 export default Index;
 
@@ -100,7 +110,7 @@ const styles = StyleSheet.create({
   },
   container: {
     padding: 15,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.WHITE,
     height: '100%',
     marginTop: -30,
     borderTopLeftRadius: 30,
@@ -116,10 +126,8 @@ const styles = StyleSheet.create({
     color: Colors.gray,
   },
   flexBox: {
-    display: 'flex',
     flexDirection: 'row',
     gap: 5,
     marginTop: 5,
   },
- 
 });

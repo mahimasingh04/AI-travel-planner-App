@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View, ActivityIndicator,ScrollView ,TouchableOpacity} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors } from '@/constants/Colors';
+import { Colors } from '../../constants/Colors';
 import { useEffect, useState } from 'react';
 import StartNewTripCard from '../../components/MyTrips/StartNewTripCard';
 import { collection, getDocs, query, where } from 'firebase/firestore';
@@ -67,7 +67,7 @@ export default MyTrip;
 
 const styles = StyleSheet.create({
   mainView: {
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.WHITE,
     height: '100%',
     paddingTop: 40,
     padding: 25,

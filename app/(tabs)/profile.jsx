@@ -3,16 +3,17 @@ import { auth, db } from './../../configs/FirebaseConfig'; // Import Firestore
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
+import { Colors } from '../../constants/Colors';
 import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 
-const ProfileScreen = ({ userTrips }) => {
+const ProfileScreen = ({ userTrips = [] }) => {  // Default to an empty array
   const router = useRouter();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [profileImage, setProfileImage] = useState(null);
-
+  
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (authUser) => {
       setUser(authUser);
@@ -22,18 +23,17 @@ const ProfileScreen = ({ userTrips }) => {
     return unsubscribe;
   }, []);
 
-  // Calculate total number of trips
-  const totalTrips = userTrips ? userTrips.length : 0;
+  // Calculate total number of trips safely
+  const totalTrips = userTrips.length;
 
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      router.replace('/');
+      router.replace('/');  // Redirect to the login screen after logout
     } catch (error) {
       console.error("Logout Failed:", error.message);
     }
   };
-
 
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
@@ -54,25 +54,25 @@ const ProfileScreen = ({ userTrips }) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Profile</Text>
+      <Text style={styles.title}>My Profile</Text>
 
       {/* Profile Image */}
       <TouchableOpacity onPress={pickImage} style={styles.imageContainer}>
         {profileImage ? (
           <Image source={{ uri: profileImage }} style={styles.profileImage} />
         ) : (
-          <Ionicons name="person-circle-outline" size={120} color="gray" />
+          <Ionicons name="person-circle-outline" size={120} color="#4E4E4E" />
         )}
       </TouchableOpacity>
       <Text style={styles.email}>{user?.email}</Text>
 
       {/* Travel Stats */}
       <View style={styles.statsContainer}>
-        <View style={styles.stat}>
+        <View style={styles.statCard}>
           <Text style={styles.statNumber}>{totalTrips}</Text>
           <Text style={styles.statLabel}>Trips</Text>
         </View>
-        <View style={styles.stat}>
+        <View style={styles.statCard}>
           <Text style={styles.statNumber}>{user?.countries || 0}</Text>
           <Text style={styles.statLabel}>Countries</Text>
         </View>
@@ -86,7 +86,6 @@ const ProfileScreen = ({ userTrips }) => {
   );
 };
 
-
 export default ProfileScreen;
 
 const styles = StyleSheet.create({
@@ -94,22 +93,29 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: '#F5F5F5',
     paddingHorizontal: 20,
+    paddingTop: 40,
   },
   title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    marginBottom: 20,
+    fontSize: 30,
+    fontWeight: '700',
+    color: Colors.PRIMARY,
+    marginBottom: 15,
   },
   email: {
     fontSize: 18,
-    marginBottom: 20,
-    color: 'gray',
+    marginBottom: 25,
+    color: '#4E4E4E',
   },
   imageContainer: {
     alignItems: 'center',
-    marginBottom: 15,
+    marginBottom: 20,
+    borderWidth: 2,
+    borderColor: '#E0E0E0',
+    borderRadius: 60,
+    padding: 5,
+    backgroundColor: '#fff',
   },
   profileImage: {
     width: 120,
@@ -118,30 +124,42 @@ const styles = StyleSheet.create({
   },
   statsContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'space-evenly',
     width: '100%',
-    marginBottom: 20,
+    marginBottom: 30,
   },
-  stat: {
+  statCard: {
+    backgroundColor: '#ffffff',
+    padding: 15,
+    borderRadius: 12,
+    width: 120,
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
   },
   statNumber: {
-    fontSize: 24,
-    fontWeight: 'bold',
+    fontSize: 28,
+    fontWeight: '600',
+    color: '#2D2D2D',
   },
   statLabel: {
     fontSize: 16,
-    color: 'gray',
+    color: '#888',
   },
   logoutButton: {
-    backgroundColor: 'red',
+    backgroundColor: Colors.PRIMARY,
     padding: 12,
-    borderRadius: 5,
-    marginTop: 10,
+    borderRadius: 10,
+    width: '80%',
+    marginTop: 20,
+    alignItems: 'center',
   },
   logoutText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
   },
   loader: {

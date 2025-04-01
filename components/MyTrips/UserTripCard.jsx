@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, Image } from 'react-native';
+import { StyleSheet, Text, View, Image, TouchableOpacity } from 'react-native';
 import moment from 'moment';
+import { useRouter } from 'expo-router';
 import { Colors } from './../../constants/Colors';
 
 const UserTripCard = ({ trip }) => {
   const [placeImage, setPlaceImage] = useState(null);
+  const router = useRouter();
 
   const formatData = (data) => {
     try {
@@ -40,7 +42,10 @@ const UserTripCard = ({ trip }) => {
   }, [placeName]);
 
   return (
-    <View style={styles.flexContainer}>
+    <TouchableOpacity 
+      style={styles.flexContainer} 
+      onPress={() => router.push({ pathname: '../trip-details', params: { trip: JSON.stringify(trip) } })}
+    >
       <Image
         source={placeImage ? { uri: placeImage } : require('./../../assets/images/travel.jpg')}
         style={styles.image}
@@ -54,7 +59,7 @@ const UserTripCard = ({ trip }) => {
           Travelling: {tripData?.traveler?.title || "N/A"}
         </Text>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 };
 
@@ -70,6 +75,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 20,
+    padding: 10,
+    backgroundColor: '#f8f8f8',
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
   },
   paragraph: {
     fontFamily: 'Outfit-Medium',

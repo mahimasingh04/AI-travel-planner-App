@@ -26,7 +26,6 @@ const FlightInfo = ({ flightData }) => {
         <View key={index} style={styles.flightContainer}>
           <Text style={styles.para}>Airline: {flights.airline}</Text>
           <Text style={styles.para}>Price: {flights.priceEstimate}</Text>
-          
         </View>
       ))}
     </View>
@@ -54,13 +53,13 @@ const styles = StyleSheet.create({
   },
   button: {
     padding: 5,
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.PRIMARY,
     borderRadius: 7,
     marginTop: 7,
   },
   buttonTxT: {
     fontFamily: 'Outfit',
-    color: Colors.white,
+    color: Colors.WHITE,
     textAlign: 'center',
   },
   flightContainer: {
